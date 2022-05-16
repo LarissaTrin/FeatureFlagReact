@@ -1,7 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
+import logo from "./logo.svg";
+import "./App.css";
+import { useEffect } from "react";
+import { useFeatureFlag } from "./useFeatureFlag";
 
 function App() {
+
+  const featureflag1 = useFeatureFlag("Feature.Test");
+
+  useEffect(() => {
+    console.log("featureflag1", featureflag1);
+  } , [featureflag1]);
+
   return (
     <div className="App">
       <header className="App-header">
