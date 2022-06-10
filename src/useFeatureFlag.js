@@ -3,7 +3,9 @@ import { useMemo, useState } from "react";
 
 // create a .env file in the root of your project and add the following line:
 // REACT_APP_APPCONFIG_CONNECTION_STRING=<your read-only connection string>
-const client = new AppConfigurationClient(process.env.REACT_APP_APPCONFIG_CONNECTION_STRING);
+const client = new AppConfigurationClient(
+  process.env.REACT_APP_APPCONFIG_CONNECTION_STRING
+);
 
 /**
  * Retrieves the specified feature flag from Azure App Configuration.
@@ -15,9 +17,16 @@ const useFeatureFlag = (flagKey = "") => {
 
   useMemo(() => {
     const getConfig = async () => {
-      const result = await client.getConfigurationSetting({
-        key: `.appconfig.featureflag/${flagKey}`,
-      });
+      const result = await client
+        .getConfigurationSetting({
+          key: `.appconfig.featureflag/${flagKey}`,
+        })
+        .catch((_) => {
+          console.error(
+            `Unable to retrieve the "${flagKey}" feature flag from Azure App Configuration.`
+          );
+        });
+
       if (result && typeof result === "object") {
         setEnabled(JSON.parse(result.value).enabled);
       }
@@ -30,27 +39,28 @@ const useFeatureFlag = (flagKey = "") => {
 };
 
 /**
- * Retrieves and parses the specified JSON configuration from Azure App Configuration.
+ * Retrieves and parses the specified configuration from Azure App Configuration.
  * @param {string} configKey App Config Key
  * @returns the configuration for the specified key
  */
 const useConfiguration = (configKey = "") => {
-  const [config, setConfig] = useState(null);
+  const [config, setConfig] = useState("");
 
   useMemo(() => {
     const getConfig = async () => {
-      const result = await client.getConfigurationSetting({
-        key: configKey.toString().trim(),
-      });
-      let parsedValue = {};
+      const result = await client
+        .getConfigurationSetting({
+          key: configKey,
+        })
+        .catch((_) => {
+          console.error(
+            `Unable to retrieve the "${configKey}" configuration from Azure App Configuration.`
+          );
+        });
+
       if (result) {
-        try {
-          parsedValue = JSON.parse(result.value);
-        } catch (e) {
-          console.log(`The value for the "${configKey}" configuration key is not a valid JSON string.`)
-        }
+        setConfig(result.value);
       }
-      setConfig(parsedValue);
     };
 
     getConfig();
